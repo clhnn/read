@@ -2,6 +2,8 @@ import docx
 import json
 
 class Word:
+    
+    #初始化方法，設定要處理的 Word 檔案
     def __init__(self, doc):
         self.doc = docx.Document(doc)
 

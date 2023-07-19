@@ -5,11 +5,11 @@ from PyPDF2 import PdfReader
 
 class PDFProcessor:
     
-# 初始化方法，設定要處理的 PDF 檔案名稱    
+    # 初始化方法，設定要處理的 PDF 檔案名稱    
     def __init__(self, pdf_file):
         self.pdf_file = pdf_file
         
-# 讀取 PDF 的圖片並儲存成檔案   
+    # 讀取 PDF 的圖片並儲存成檔案   
     def extract_images(self):
         reader = PdfReader(self.pdf_file)
         for i in range(len(reader.pages)):
@@ -18,7 +18,7 @@ class PDFProcessor:
                 with open(f"image{j+1}.png", "wb") as f:
                     f.write(image.data)
                     
-# 讀取 PDF 的表格並儲存成獨立的 Excel 檔案
+    # 讀取 PDF 的表格並儲存成獨立的 Excel 檔案
     def extract_tables(self):
         pdf = pdfplumber.open(self.pdf_file)
         result_df = pd.DataFrame()
@@ -36,7 +36,7 @@ class PDFProcessor:
                 df_detail.to_excel(xlsx_name[0])
                 namenum += 1
                 
-# 建立 PDF 的簡單大綱，包含頁碼和內容
+    # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):
         with open(self.pdf_file, 'rb') as file:
             pdf_reader = PdfReader(file)
@@ -55,7 +55,7 @@ class PDFProcessor:
                 outline['children'].append(page_node)
         return outline
         
-# 處理 PDF，提取圖片、表格並建立大綱
+    # 處理 PDF，提取圖片、表格並建立大綱
     def process_pdf(self):
         self.extract_images()
         self.extract_tables()
@@ -66,7 +66,7 @@ class PDFProcessor:
         }
         return result_dict
         
-# 處理 PDF 並將結果匯出成 JSON 檔案
+    # 處理 PDF 並將結果匯出成 JSON 檔案
     def process_and_export_json(self):
         result = self.process_pdf()
         json_result = json.dumps(result, indent=4, ensure_ascii=False)

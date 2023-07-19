@@ -6,7 +6,7 @@ from PyPDF2 import PdfReader
 class PDFProcessor:
     def __init__(self, pdf_file):
         self.pdf_file = pdf_file
-    
+#讀取PDF的圖片    
     def extract_images(self):
         reader = PdfReader(self.pdf_file)
         for i in range(len(reader.pages)):
@@ -14,7 +14,7 @@ class PDFProcessor:
             for j, image in enumerate(page.images):    
                 with open(f"image{j+1}.png", "wb") as f:
                     f.write(image.data)
-
+#讀取PDF的表格
     def extract_tables(self):
         pdf = pdfplumber.open(self.pdf_file)
         result_df = pd.DataFrame()
@@ -31,7 +31,7 @@ class PDFProcessor:
                 df_detail = pd.DataFrame(table[1:], columns=table[0])
                 df_detail.to_excel(xlsx_name[0])
                 namenum += 1
-
+#讀取PDF的文字
     def create_simple_outline(self):
         with open(self.pdf_file, 'rb') as file:
             pdf_reader = PdfReader(file)
@@ -49,7 +49,7 @@ class PDFProcessor:
                 }
                 outline['children'].append(page_node)
         return outline
-
+#
     def process_pdf(self):
         self.extract_images()
         self.extract_tables()
@@ -67,7 +67,7 @@ class PDFProcessor:
         with open("PDFtxt.json", "w", encoding='utf-8') as file:
             file.write(json_result)
         print("JSON result exported to PDFtxt.json")
-
+#
 if __name__ == '__main__':
     pdf_processor = PDFProcessor("your file name.pdf")
     pdf_processor.extract_images()

@@ -2,7 +2,7 @@ from PDF import PDFProcessor
 if __name__ == '__main__':
     
     # 請將 "your file name.pdf" 替換為要處理的實際 PDF 檔案名稱
-    pdf_processor = PDFProcessor("222.pdf")
+    pdf_processor = PDFProcessor("your file name.pdf")
 
     #從PDF中提取圖片
     pdf_processor.extract_images()

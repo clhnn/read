@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import pdfplumber
+import os
 from PyPDF2 import PdfReader
 
 class PDFProcessor:
@@ -31,11 +32,11 @@ class PDFProcessor:
                 continue
             for ti, table in enumerate(tables):
                 if odname!=None:
-                    xlsx_name = os.path.join(odname, f'table{ti+1}_{i+1}.xlsx')
+                    xlsx_name = os.path.join(odname, f'table{ti+1}_{i+1}.csv')
                 else:
-                    xlsx_name = f'table{ti+1}_{i+1}.xlsx'
+                    xlsx_name = f'table{ti+1}_{i+1}.csv'
                 df_detail = pd.DataFrame(table[1:], columns=table[0])
-                df_detail.to_excel(xlsx_name)
+                df_detail.to_csv(xlsx_name)
         return
                 
     # 建立 PDF 的簡單大綱，包含頁碼和內容

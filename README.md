@@ -2,8 +2,9 @@
 此示範程式皆為Python
 
 ## PDF
-'PDFProcessor'類用於處理PDF文件，包括提取圖片、提取表格並保存為獨立的Excel文件，創建PDF的簡單大綱，以及將處理結果倒出為JSON文件。該類包含以下方法:
-`注意!在執行程式前請確保以安裝所需的Python庫:'json'、'pandas'、'pdfplumber' 和 'PyPDF2'`
+'PDFProcessor'類用於處理PDF文件，包括提取圖片、提取表格並保存為獨立的Excel文件，創建PDF的簡單大綱，以及將處理結果導出為JSON文件。該類包含以下方法
+
+`注意!在執行程式前請確保已安裝所需的Python庫:'json'、'pandas'、'pdfplumber' 和 'PyPDF2'`
 
 ###### 初始化方法
 初始化方法用於設置要處理的PDF文件名
@@ -121,8 +122,10 @@ if __name__ == '__main__':
 ## Word
 'Word'類圖供了處理Word文檔的功能，包括讀取文本段落、提取圖片和讀取表格內容。該類包含以下方法
 
+`注意!請確保在執行程式前，請確保已安裝所需的Python庫:'json'和'docx'`
+
 ###### 初始化方法
-'read_text'方法用於從Word文檔中讀取所有文本段落。並以列表行形式返回
+初始化方法用於設置要處理的Word文檔名
 ```js
 #初始化方法，設定要處理的 Word 檔案
 def __init__(self, doc):
@@ -189,3 +192,57 @@ def readheading(self):
         if paragraph.style.name.startswith('Heading'):
             heading.append(paragraph.text)
     return heading
+```
+
+###### 主程式
+在主程式部分，你可以創建一個'Word'最像並調用其他方法處理Word文檔。以下是可以執行的操作:
+
+```js
+if __name__ == '__main__':
+    word = Word("your file name.docx")
+    text_list = word.read_text()
+    images_list = word.extract_images()
+    tables_data = word.read_table()
+    heading = word.readheading()
+
+    result = {
+        'Heading': heading,
+        'text': text_list,
+        'images': images_list,
+        'tables': tables_data        
+    }
+
+    with open('wordtxt.json', 'w') as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+    print("JSON result exported to wordtxt.json")
+```
+通過調用相應的方法或去處理結果，並將結果整合成一個字典。最後，將結果以JSON格式寫入名為'wordtxt.json'的文件中
+
+`注意!請確保在執行程式前，將'your file name.docx'更改為您將使用的Word文檔名`
+
+# Install
+Python適用
+
+## PDF
+
+```js
+pip install PyPDF2
+```
+PyPDF2是一個用於處理PDF文件的庫，它可以讀取和操作PDF文件。此程式中，其用於讀取PDF文件的頁面並提取頁面中的圖像數據
+
+```js
+pip install pdfplumber
+```
+pdfplumber是一個用於處理PDF文件的庫。它提供提取文本、圖像、表格等內容的功能。在此程式中，pdfplumber用於提取PDF文件中的表格數據
+
+```js
+pip install pandas
+```
+Pandas是一個強大的樹去分析處理庫，它提供了綾羅高校的數據結構和數據分析工具。在此程式中，pdfplumber用於提取PDF文件中的表格數據。
+
+## Word
+
+```js
+pip install docx
+```
+用於處理Microsoft Word文檔(.docx)的Python庫。他提供一組功能，用於讀取、編輯和創建Word文檔，在此程式碼中，'docx'庫被用於讀取Word文檔的內容。包括文本段落、表格和圖片

@@ -19,22 +19,24 @@ class PDFProcessor:
                     f.write(image.data)
                     
     # 讀取 PDF 的表格並儲存成獨立的 Excel 檔案
-    def extract_tables(self):
+    def extract_tables(self, odname=None):
         pdf = pdfplumber.open(self.pdf_file)
         result_df = pd.DataFrame()
         for i in range(len(pdf.pages)):
             page = pdf.pages[i]
+            print('>>checking table at page %d'%(i))
             tables = page.extract_tables()
-            namenum = 0
             if not tables:
+                print('>>skipped table at page %d'%(i))
                 continue
-            for table in tables:
-                if namenum+1 > len(tables):
-                    continue
-                xlsx_name = [f'text{namenum+1}.xlsx']
+            for ti, table in enumerate(tables):
+                if odname!=None:
+                    xlsx_name = os.path.join(odname, f'table{ti+1}_{i+1}.xlsx')
+                else:
+                    xlsx_name = f'table{ti+1}_{i+1}.xlsx'
                 df_detail = pd.DataFrame(table[1:], columns=table[0])
-                df_detail.to_excel(xlsx_name[0])
-                namenum += 1
+                df_detail.to_excel(xlsx_name)
+        return
                 
     # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):

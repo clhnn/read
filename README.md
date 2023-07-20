@@ -1,0 +1,191 @@
+# **Introduction**
+此示範程式皆為Python
+
+## PDF
+'PDFProcessor'類用於處理PDF文件，包括提取圖片、提取表格並保存為獨立的Excel文件，創建PDF的簡單大綱，以及將處理結果倒出為JSON文件。該類包含以下方法:
+`注意!在執行程式前請確保以安裝所需的Python庫:'json'、'pandas'、'pdfplumber' 和 'PyPDF2'`
+
+###### 初始化方法
+初始化方法用於設置要處理的PDF文件名
+```js
+# 初始化方法，設定要處理的 PDF 檔案名稱
+def __init__(self, pdf_file):
+        self.pdf_file = pdf_file
+```
+
+###### 提取圖片
+'extract_images'方法從PDF文件中提取圖片，並將每個圖片保存為單獨的PNG文件
+```js
+# 讀取 PDF 的圖片並儲存成檔案
+def extract_images(self):
+    reader = PdfReader(self.pdf_file)
+    for i in range(len(reader.pages)):
+        page = reader.pages[i]
+        for j, image in enumerate(page.images):    
+            with open(f"image{j+1}.png", "wb") as f:
+                f.write(image.data)
+```
+
+###### 提取表格
+'extract_tables'方法從PDF文件中提取表格，並將每個表格保存為單獨的Excel文件
+```js
+# 讀取 PDF 的表格並儲存成獨立的 Excel 檔案
+def extract_tables(self):
+    pdf = pdfplumber.open(self.pdf_file)
+    result_df = pd.DataFrame()
+    for i in range(len(pdf.pages)):
+        page = pdf.pages[i]
+        tables = page.extract_tables()
+        namenum = 0
+        if not tables:
+            continue
+        for table in tables:
+            if namenum+1 > len(tables):
+                continue
+            xlsx_name = [f'text{namenum+1}.xlsx']
+            df_detail = pd.DataFrame(table[1:], columns=table[0])
+            df_detail.to_excel(xlsx_name[0])
+            namenum += 1
+```
+
+###### 創建簡單大綱
+'create_simple_outline'方法創建簡單大綱，包括每一頁的頁碼和內容。大綱以字典形式返回
+```js
+# 建立 PDF 的簡單大綱，包含頁碼和內容
+def create_simple_outline(self):
+    with open(self.pdf_file, 'rb') as file:
+        pdf_reader = PdfReader(file)
+        num_pages = len(pdf_reader.pages)
+        outline = {
+            'children': []
+        }
+        for page_num in range(num_pages):
+            page = pdf_reader.pages[page_num]
+            content = page.extract_text()
+            page_node = {
+                'title': f'Page {page_num + 1}',
+                'page': page_num + 1,
+                'content': content
+            }
+            outline['children'].append(page_node)
+    return outline
+```
+
+###### 處理PDF
+'process_pdf'方法是綜合處理PDF的方法，他調用'extract_images'、'extract_tables'和'create_simple_outline'方法，提取圖片、表格並創建大綱。最終將結果以字典形式返回
+```js
+# 處理 PDF，提取圖片、表格並建立大綱
+def process_pdf(self):
+    self.extract_images()
+    self.extract_tables()
+    pdf_outline = self.create_simple_outline()
+
+    result_dict = {
+        'outline': pdf_outline
+    }
+    return result_dict
+```
+
+###### 導出JSON
+'process_and_export_json'方法用於處理PDF並將結果導出為JSON文件。他調用'_pdf'方法獲取處理結果，並將結果以JSON格是寫入名為'PDFtxt.json'的文件中
+```js
+# 處理 PDF 並將結果匯出成 JSON 檔案
+def process_and_export_json(self):
+    result = self.process_pdf()
+    json_result = json.dumps(result, indent=4, ensure_ascii=False)
+    with open("PDFtxt.json", "w", encoding='utf-8') as file:
+        file.write(json_result)
+    print("JSON result exported to PDFtxt.json")
+```
+
+###### 主程式
+在主程式部分，你可以創建一個'PDFProcessor'對象並調用其方法來處理PDF文件。以下是可以執行的操作:
+* 從PDF中提取圖片並保存為PNG文件
+* 從PDF中途取表格並保存為獨立的Excel文件
+* 創建包含頁碼和內容的PDF簡單大綱
+* 處理PDF，提取圖片、表格和大綱
+* 將處理結果導出為JSON文件
+```js
+#主程式部分
+if __name__ == '__main__':
+    pdf_processor = PDFProcessor("your file name.pdf")
+    pdf_processor.extract_images()
+    pdf_processor.extract_tables()
+    pdf_processor.create_simple_outline()
+    pdf_processor.process_pdf()
+    pdf_processor.process_and_export_json()
+```
+
+`注意!在執行程式前請確保'your file name.pdf'為實際的PDF文件名`
+
+## Word
+'Word'類圖供了處理Word文檔的功能，包括讀取文本段落、提取圖片和讀取表格內容。該類包含以下方法
+
+###### 初始化方法
+'read_text'方法用於從Word文檔中讀取所有文本段落。並以列表行形式返回
+```js
+#初始化方法，設定要處理的 Word 檔案
+def __init__(self, doc):
+    self.doc = docx.Document(doc)
+```
+
+###### 讀取文本段落
+'read_text'方法用於從Word文檔中讀取所有文本段落。並以列表行形式返回
+```js
+# 讀取 Word 文件中的所有文本段落
+def read_text(self):
+    paragraphs = self.doc.paragraphs
+    text_list = [paragraph.text for paragraph in paragraphs]
+    return text_list
+```
+
+###### 提取圖片
+'extract_images'方法用於提取Word文檔中的所有圖片，並將每個圖片保存為單獨的PNG文件。方法返回保存圖片的文件名列表
+```js
+# 提取 Word 文件中的所有圖片並儲存成檔案
+def extract_images(self):
+    rels = self.doc.part.rels
+    images = []     
+    for rel in rels:
+        rel_type = rels[rel].reltype
+        if "image" in rel_type:
+            image_part = rels[rel]._target
+            image_data = image_part.blob
+            image_filename = f"image{len(images)+1}.png"
+            with open(image_filename, "wb") as f:
+                f.write(image_data)
+            images.append(image_filename)
+    return images
+```
+
+###### 讀取表格內容
+'read_table'方法用於讀取Word文檔中表格的內容<並將內容已遷到列表的形式返回。每個列表都表示為一個列表，其中每個字典代表一個表格行，字典的鍵是表頭，值是表格單元格的內容
+```js
+# 讀取 Word 文件中的表格內容並返回列表形式
+def read_table(self):
+    tables_data = []
+    for table in self.doc.tables:
+        data = []
+        keys = None
+        for i, row in enumerate(table.rows):
+            text = [cell.text.strip() for cell in row.cells]
+            if i == 0:
+                keys = tuple(text)
+                continue
+            row_data = dict(zip(keys, text))
+            data.append(row_data)
+        tables_data.append(data)
+    return tables_data
+```
+
+###### 讀取標題樣式段落
+'readheading'方法用於讀取Word文檔中的標題樣式段落，並以列表形式返回
+```js
+# 讀取 Word 文件中的標題樣式段落並返回列表
+def readheading(self):
+    paragraphs = self.doc.paragraphs
+    heading=[]
+    for paragraph in paragraphs:
+        if paragraph.style.name.startswith('Heading'):
+            heading.append(paragraph.text)
+    return heading

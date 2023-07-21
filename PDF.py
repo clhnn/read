@@ -19,25 +19,63 @@ class PDFProcessor:
                 with open(f"image{j+1}.png", "wb") as f:
                     f.write(image.data)
                     
-    # 讀取 PDF 的表格並儲存成獨立的 Excel 檔案
+    # 讀取 PDF 的表格並儲存成獨立的 csv 檔案
     def extract_tables(self, odname=None):
         pdf = pdfplumber.open(self.pdf_file)
-        result_df = pd.DataFrame()
-        for i in range(len(pdf.pages)):
-            page = pdf.pages[i]
-            print('>>checking table at page %d'%(i))
+        for pagenum, page in enumerate(pdf.pages):
+            print('>>checking table at page %d'%(pagenum))
             tables = page.extract_tables()
+    
             if not tables:
-                print('>>skipped table at page %d'%(i))
+                print('>>skipped table at page %d'%(pagenum))
                 continue
-            for ti, table in enumerate(tables):
-                if odname!=None:
-                    xlsx_name = os.path.join(odname, f'table{ti+1}_{i+1}.csv')
+    
+            bbox_top = pdf.pages[pagenum].bbox[3]
+            bbox_bottom = pdf.pages[pagenum].find_tables()[0].bbox[1]
+            char_y1 = pdf.pages[pagenum].chars[0].get('y1')
+
+            if bbox_top - bbox_bottom >= char_y1:
+                if pagenum == 0 or (pdf.pages[pagenum-1].bbox[3]-pdf.pages[pagenum-1].find_tables()[-1].bbox[3] <= pdf.pages[pagenum-1].chars[-1].get('y0') and bbox_top - pdf.pages[pagenum].find_tables()[-1].bbox[3] <= pdf.pages[pagenum].chars[-1].get('y0')):
+                    for ti, table in enumerate(tables):
+                        csv_name = os.path.join(odname, f'table{ti+1}_{pagenum+1}.csv') if odname else f'table{ti+1}_{pagenum+1}.csv'
+                        if table == tables[-1]:
+                            table += pdf.pages[pagenum+1].extract_tables()[0] if pagenum == 0 and bbox_top - pdf.pages[pagenum].find_tables()[-1].bbox[3] <= pdf.pages[pagenum].chars[-1].get('y0') else []
+                            combined_table = pd.DataFrame(table[1:], columns=table[0])
+                            combined_table.to_csv(csv_name)
+                            continue
+                        df_detail = pd.DataFrame(table[1:], columns=table[0])
+                        df_detail.to_csv(csv_name)
                 else:
-                    xlsx_name = f'table{ti+1}_{i+1}.csv'
-                df_detail = pd.DataFrame(table[1:], columns=table[0])
-                df_detail.to_csv(xlsx_name)
-        return
+                    for t, table in enumerate(tables):
+                        csv_name = os.path.join(odname, f'table{t+1}_{pagenum+1}.csv') if odname else f'table{t+1}_{pagenum+1}.csv'
+                        if table == tables[0]:
+                            continue
+                        df_detail = pd.DataFrame(table[1:], columns=table[0])
+                        df_detail.to_csv(csv_name)
+            else:
+                for tj, table in enumerate(tables):
+                    csv_name = os.path.join(odname, f'table{tj+1}_{pagenum+1}.csv') if odname else f'table{tj+1}_{pagenum+1}.csv'
+                    df_detail = pd.DataFrame(table[1:], columns=table[0])
+                    df_detail.to_csv(csv_name)
+                
+    # 建立 PDF 的簡單大綱，包含頁碼和內容
+    def create_simple_outline(self):
+        with open(self.pdf_file, 'rb') as file:
+            pdf_reader = PdfReader(file)
+            num_pages = len(pdf_reader.pages)
+            outline = {
+                'children': []
+            }
+            for page_num in range(num_pages):
+                page = pdf_reader.pages[page_num]
+                content = page.extract_text()
+                page_node = {
+                    'title': f'Page {page_num + 1}',
+                    'page': page_num + 1,
+                    'content': content
+                }
+                outline['children'].append(page_node)
+        return outline
                 
     # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):

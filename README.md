@@ -28,25 +28,45 @@ def extract_images(self):
 ```
 
 ###### 提取表格
-'extract_tables'方法從PDF文件中提取表格，並將每個表格保存為單獨的Excel文件
+'extract_tables'方法從PDF文件中提取表格，並將每個表格保存為單獨的csv文件
 ```js
-# 讀取 PDF 的表格並儲存成獨立的 Excel 檔案
-def extract_tables(self):
+def extract_tables(self, odname=None):
     pdf = pdfplumber.open(self.pdf_file)
-    result_df = pd.DataFrame()
-    for i in range(len(pdf.pages)):
-        page = pdf.pages[i]
+    for pagenum, page in enumerate(pdf.pages):
+        print('>>checking table at page %d'%(pagenum))
         tables = page.extract_tables()
-        namenum = 0
+    
         if not tables:
+            print('>>skipped table at page %d'%(pagenum))
             continue
-        for table in tables:
-            if namenum+1 > len(tables):
-                continue
-            xlsx_name = [f'text{namenum+1}.xlsx']
-            df_detail = pd.DataFrame(table[1:], columns=table[0])
-            df_detail.to_excel(xlsx_name[0])
-            namenum += 1
+    
+        bbox_top = pdf.pages[pagenum].bbox[3]
+        bbox_bottom = pdf.pages[pagenum].find_tables()[0].bbox[1]
+        char_y1 = pdf.pages[pagenum].chars[0].get('y1')
+
+        if bbox_top - bbox_bottom >= char_y1:
+            if pagenum == 0 or (pdf.pages[pagenum-1].bbox[3]-pdf.pages[pagenum-1].find_tables()[-1].bbox[3] <= pdf.pages[pagenum-1].chars[-1].get('y0') and bbox_top - pdf.pages[pagenum].find_tables()[-1].bbox[3] <= pdf.pages[pagenum].chars[-1].get('y0')):
+                for ti, table in enumerate(tables):
+                    csv_name = os.path.join(odname, f'table{ti+1}_{pagenum+1}.csv') if odname else f'table{ti+1}_{pagenum+1}.csv'
+                    if table == tables[-1]:
+                        table += pdf.pages[pagenum+1].extract_tables()[0] if pagenum == 0 and bbox_top - pdf.pages[pagenum].find_tables()[-1].bbox[3] <= pdf.pages[pagenum].chars[-1].get('y0') else []
+                        combined_table = pd.DataFrame(table[1:], columns=table[0])
+                        combined_table.to_csv(csv_name)
+                        continue
+                    df_detail = pd.DataFrame(table[1:], columns=table[0])
+                    df_detail.to_csv(csv_name)
+            else:
+                for t, table in enumerate(tables):
+                    csv_name = os.path.join(odname, f'table{t+1}_{pagenum+1}.csv') if odname else f'table{t+1}_{pagenum+1}.csv'
+                    if table == tables[0]:
+                        continue
+                    df_detail = pd.DataFrame(table[1:], columns=table[0])
+                    df_detail.to_csv(csv_name)
+        else:
+            for tj, table in enumerate(tables):
+                csv_name = os.path.join(odname, f'table{tj+1}_{pagenum+1}.csv') if odname else f'table{tj+1}_{pagenum+1}.csv'
+                df_detail = pd.DataFrame(table[1:], columns=table[0])
+                df_detail.to_csv(csv_name)
 ```
 
 ###### 創建簡單大綱

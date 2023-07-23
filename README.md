@@ -122,7 +122,7 @@ def process_and_export_json(self):
 ###### 主程式
 在主程式部分，你可以創建一個'PDFProcessor'對象並調用其方法來處理PDF文件。以下是可以執行的操作:
 * 從PDF中提取圖片並保存為PNG文件
-* 從PDF中途取表格並保存為獨立的Excel文件
+* 從PDF中提取表格並保存為獨立的csv文件
 * 創建包含頁碼和內容的PDF簡單大綱
 * 處理PDF，提取圖片、表格和大綱
 * 將處理結果導出為JSON文件

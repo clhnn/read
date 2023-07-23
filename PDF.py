@@ -124,7 +124,7 @@ if __name__ == '__main__':
     #從PDF中提取圖片
     pdf_processor.extract_images()
 
-    # 從 PDF 中提取表格並儲存為單獨的 Excel 檔案
+    # 從 PDF 中提取表格並儲存為單獨的 csv 檔案
     pdf_processor.extract_tables()
 
     # 建立包含頁碼和內容的 PDF 簡單大綱

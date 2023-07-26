@@ -28,13 +28,15 @@ class PDFProcessor:
         for pagenum, page in enumerate(pdf.pages):
             print('>>checking table at page %d'%(pagenum))
             tables = page.extract_tables()
+
             if not tables:
                 print('>>skipped table at page %d'%(pagenum))
                 continue
-            
+    
             table_bottom = pdf.pages[pagenum].bbox[3]-pdf.pages[pagenum].find_tables()[-1].bbox[3] <= pdf.pages[pagenum].chars[-1].get('y0')
-            
+    
             if table_bottom:
+        
                 if pagenum == 0:
                     for tj, table in enumerate(tables):
                         if odname != None:
@@ -42,14 +44,22 @@ class PDFProcessor:
                         else:
                             csv_name = f'table{tj+1}_{pagenum+1}.csv'
                         if table == tables[-1] or (pagenum+1 > len(pdf.pages)-1):
-                            table += pdf.pages[pagenum+1].extract_tables()[0]
+                            count = 1
+                            for c in range(1, len(pdf.pages)+1):
+                                if pdf.pages[pagenum+c].extract_tables()[0] != pdf.pages[pagenum+c].extract_tables()[-1]:
+                                    break
+                                if pdf.pages[pagenum+c].bbox[3]-pdf.pages[pagenum+c].find_tables()[-1].bbox[3] > pdf.pages[pagenum+c].chars[-1].get('y0'):
+                                    break
+                                count += 1
+                            for page_table in range(1, count+1):
+                                table += pdf.pages[pagenum+page_table].extract_tables()[0]
                             combined_table = pd.DataFrame(table[1:], columns = table[0])
                             combined_table.to_csv(csv_name)
                             already_taken = 'True'
                             continue
                         df_detail = pd.DataFrame(table[1:], columns = table[0])
                         df_detail.to_csv(csv_name)
-                        
+                
                 elif already_taken == 'True':
                     for t2, table in enumerate(tables):
                         if odname != None:
@@ -59,14 +69,23 @@ class PDFProcessor:
                         if table == tables[0]:
                             continue
                         if table == tables[-1] or (pagenum+1 > len(pdf.pages)-1):
-                            table += pdf.pages[pagenum+1].extract_tables()[0]
+                            count = 1
+                            for c in range(1, len(pdf.pages)+1):
+                                if pdf.pages[pagenum+c].extract_tables()[0] != pdf.pages[pagenum+c].extract_tables()[-1]:
+                                    break
+                                if pdf.pages[pagenum+c].bbox[3]-pdf.pages[pagenum+c].find_tables()[-1].bbox[3] > pdf.pages[pagenum+c].chars[-1].get('y0'):
+                                    break
+                                count += 1
+                            for page_table in range(1, count+1):
+                                table += pdf.pages[pagenum+page_table].extract_tables()[0]
                             combined_table = pd.DataFrame(table[1:], columns = table[0])
                             combined_table.to_csv(csv_name)
                             already_taken = 'True'
                             continue
                         df_detail = pd.DataFrame(table[1:], columns = table[0])
                         df_detail.to_csv(csv_name)
-                        
+                
+                
                 else:
                     for ti, table in enumerate(tables):
                         if odname != None:
@@ -74,14 +93,22 @@ class PDFProcessor:
                         else:
                             csv_name = f'table{ti+1}_{pagenum+1}.csv'
                         if table == tables[-1] or (pagenum+1 > len(pdf.pages)-1):
-                            table += pdf.pages[pagenum+1].extract_tables()[0]
+                            count = 1
+                            for c in range(1, len(pdf.pages)+1):
+                                if pdf.pages[pagenum+c].extract_tables()[0] != pdf.pages[pagenum+c].extract_tables()[-1]:
+                                    break
+                                if pdf.pages[pagenum+c].bbox[3]-pdf.pages[pagenum+c].find_tables()[-1].bbox[3] > pdf.pages[pagenum+c].chars[-1].get('y0'):
+                                    break
+                                count += 1
+                            for page_table in range(1, count+1):
+                                table += pdf.pages[pagenum+page_table].extract_tables()[0]
                             combined_table = pd.DataFrame(table[1:], columns = table[0])
                             combined_table.to_csv(csv_name)
                             already_taken = 'True'
                             continue
                         df_detail = pd.DataFrame(table[1:], columns = table[0])
                         df_detail.to_csv(csv_name)
-                        
+                
             elif already_taken == 'True':
                 for t2, table in enumerate(tables):
                     if odname != None:
@@ -93,7 +120,7 @@ class PDFProcessor:
                         continue
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
                     df_detail.to_csv(csv_name)
-                        
+                
             else:
                 for t, table in enumerate(tables):
                     if odname != None:

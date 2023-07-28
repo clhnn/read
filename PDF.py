@@ -130,26 +130,7 @@ class PDFProcessor:
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
                     df_detail.to_csv(csv_name)
                     already_taken = 'False'
-                
-    # 建立 PDF 的簡單大綱，包含頁碼和內容
-    def create_simple_outline(self):
-        with open(self.pdf_file, 'rb') as file:
-            pdf_reader = PdfReader(file)
-            num_pages = len(pdf_reader.pages)
-            outline = {
-                'children': []
-            }
-            for page_num in range(num_pages):
-                page = pdf_reader.pages[page_num]
-                content = page.extract_text()
-                page_node = {
-                    'title': f'Page {page_num + 1}',
-                    'page': page_num + 1,
-                    'content': content
-                }
-                outline['children'].append(page_node)
-        return outline
-                
+                                
     # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):
         with open(self.pdf_file, 'rb') as file:

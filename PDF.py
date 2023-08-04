@@ -93,7 +93,10 @@ class PDFProcessor:
             extract_paragraphs = []
             page = pdf_reader.pages[page_num]
             page_text = page.extract_text()
-            paragraphs = page_text.split('  \n')
+            page_text = page_text.strip('\n')
+            paragraphs = page_text.split(' \n')  # Split on multiple line breaks
+            while '' in paragraphs:
+                paragraphs.remove('')
             for i, paragraph in enumerate(paragraphs):
                 paragraph_number = f"Page {page_num + 1}, Paragraph {i + 1}:{paragraph}"
                 extract_paragraphs.append(paragraph_number)

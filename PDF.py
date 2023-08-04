@@ -130,6 +130,23 @@ class PDFProcessor:
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
                     df_detail.to_csv(csv_name)
                     already_taken = 'False'
+
+    # 讀取 PDF 的每頁的段落
+    def extract_all_paragraphs(self):
+        pdf_file = open(self.pdf_file, 'rb')
+        pdf = pdfplumber.open(pdf_file)
+        pdf_reader = PdfReader(pdf_file) 
+        extract_all_paragraphs = []
+        for page_num in range(len(pdf_reader.pages)):
+            extract_paragraphs = []
+            page = pdf_reader.pages[page_num]
+            page_text = page.extract_text()
+            paragraphs = page_text.split('  \n')
+            for i, paragraph in enumerate(paragraphs):
+                paragraph_number = f"Page {page_num + 1}, Paragraph {i + 1}:{paragraph}"
+                extract_paragraphs.append(paragraph_number)
+            extract_all_paragraphs.append(extract_paragraphs)
+        return extract_all_paragraphs
                                 
     # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):
@@ -139,9 +156,10 @@ class PDFProcessor:
             outline = {
                 'children': []
             }
+            content_all = self.extract_all_paragraphs()  #page.extract_text()
             for page_num in range(num_pages):
                 page = pdf_reader.pages[page_num]
-                content = page.extract_text()
+                content = content_all[page_num]
                 page_node = {
                     'title': f'Page {page_num + 1}',
                     'page': page_num + 1,

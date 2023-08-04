@@ -81,6 +81,7 @@ class PDFProcessor:
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
                     df_detail.to_csv(csv_name,index=False)
                     already_taken = 'False'
+        return
 
     # 讀取 PDF 的每頁的段落
     def extract_all_paragraphs(self):

@@ -91,6 +91,7 @@ def extract_tables(self, odname=None):
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
                 df_detail.to_csv(csv_name,index=False)
                 already_taken = 'False'
+    return
 ```
 
 ###### 創建簡單大綱

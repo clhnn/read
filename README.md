@@ -32,7 +32,7 @@ def extract_images(self):
 ```js
 def extract_tables(self, odname=None):
     odname = None
-    pdf_path = 'demo.pdf'
+    pdf_path = self.pdf_file
     pdf = pdfplumber.open(pdf_path)
     already_taken = 'False'
     count = 1

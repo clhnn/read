@@ -22,7 +22,7 @@ class PDFProcessor:
     # 讀取 PDF 的表格並儲存成獨立的 csv 檔案
     def extract_tables(self, odname=None):
         odname = None
-        pdf_path = 'demo.pdf'
+        pdf_path = self.pdf_file
         pdf = pdfplumber.open(pdf_path)
         already_taken = 'False'
         count = 1

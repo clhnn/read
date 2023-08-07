@@ -28,10 +28,9 @@ def extract_images(self):
 ```
 
 ###### 提取表格
-'extract_tables'方法從PDF文件中提取表格，並將每個表格保存為單獨的csv文件
+'extract_tables'方法從PDF文件中提取表格，並將每個表格保存為單獨的csv文件，而不規則表格中如出現合併表格，除了輸出表示該格的值，其餘格子將輸出'#'
 ```js
 def extract_tables(self, odname=None):
-    odname = None
     pdf_path = self.pdf_file
     pdf = pdfplumber.open(pdf_path)
     already_taken = 'False'
@@ -53,9 +52,9 @@ def extract_tables(self, odname=None):
                 continue
             for t, table in enumerate(tables):
                 if odname != None:
-                    csv_name = os.path.join(odname, f'table{t+1}_{pagenum+1}.csv',index=False)
+                    csv_name = os.path.join(odname, f'page{pagenum+1}_table{t+1}.csv',index=False)
                 else:
-                    csv_name = f'table{t+1}_{pagenum+1}.csv'
+                    csv_name = f'page{pagenum+1}_table{t+1}.csv'
                 if already_taken == 'True':
                     if table == tables[0]:
                         continue
@@ -69,10 +68,20 @@ def extract_tables(self, odname=None):
                     for page_table in range(1, count+1):
                         table += pdf.pages[pagenum+page_table].extract_tables()[0]
                     combined_table = pd.DataFrame(table[1:], columns = table[0])
+                    combined_table.rename(columns={None: '#'}, inplace=True)
+                    for index, row in combined_table.iterrows():
+                        for col in range(0, len(combined_table.columns)):
+                            if combined_table.iat[index, col] == None:
+                                combined_table.iat[index, col] = '#'
                     combined_table.to_csv(csv_name,index=False)
                     already_taken = 'True'
                     continue
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
+                df_detail.rename(columns={None: '#'}, inplace=True)
+                for index, row in df_detail.iterrows():
+                    for col in range(0, len(df_detail.columns)):
+                        if df_detail.iat[index, col] == None:
+                            df_detail.iat[index, col] = '#'
                 df_detail.to_csv(csv_name,index=False)
 
         else:
@@ -81,14 +90,19 @@ def extract_tables(self, odname=None):
                 continue
             for t2, table in enumerate(tables):
                 if odname != None:
-                    csv_name = os.path.join(odname, f'table{t2+1}_{pagenum+1}.csv',index=False)
+                    csv_name = os.path.join(odname, f'page{pagenum+1}_table{t2+1}.csv',index=False)
                 else:
-                    csv_name = f'table{t2+1}_{pagenum+1}.csv'
+                    csv_name = f'page{pagenum+1}_table{t2+1}.csv'
                 if already_taken == 'True':
                     if table == tables[0]:
                         already_taken = 'False'
                         continue
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
+                df_detail.rename(columns={None: '#'}, inplace=True)
+                for index, row in df_detail.iterrows():
+                    for col in range(0, len(df_detail.columns)):
+                        if df_detail.iat[index, col] == None:
+                            df_detail.iat[index, col] = '#'
                 df_detail.to_csv(csv_name,index=False)
                 already_taken = 'False'
     return

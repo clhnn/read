@@ -88,7 +88,8 @@ class PDFProcessor:
     
     # 讀取 PDF 頁首頁碼內文
     def classify_text_by_font_size(self):
-        page_texts = {'header': [], 'content': []}
+        header_texts = {'header': []}
+        content_texts = {'content': []}
         pdf_document = fitz.open(self.pdf_file)
         for page_num in range(pdf_document.page_count):
             page = pdf_document[page_num]
@@ -97,7 +98,9 @@ class PDFProcessor:
             content_text = ''
             for line in text.split('\n'):
                 if line.strip():
+                    count = 1
                     font_size = None
+                    # 在extract_tables方法中的if table_bottom:语句块後添加以下代码
                     for block in page.get_text("dict")['blocks']:
                         for line_info in block['lines']:
                             for span in line_info['spans']:
@@ -114,22 +117,32 @@ class PDFProcessor:
                     else:
                         content_text += line + '\n'
     
-            # Store classified text in dictionary
-            page_texts['header'].append(header_text)
-            content_all_text = self.extract_paragraphs(content_text, page_num)  # Fix: remove the extra argument
-            page_texts['content'].append(content_all_text)
-        return page_texts
+            header_texts['header'].append(header_text)
+            content_all_text=self.extract_paragraphs(content_text,page_num)
+            content_texts['content'].append(content_all_text)
+        return header_texts,content_texts
+
 
     # 讀取 PDF 的每頁的段落
-    def extract_paragraphs(self,text,page_num):
-        paragraphs = text.split(' \n') 
-        all_para=[]
-        while '' in paragraphs:
-            paragraphs.remove('')
+    def extract_paragraphs(self, text, page_num):
+        paragraphs = text.split(' \n')
+        all_para = {}
+        merged_paragraph = ''
         for i, paragraph in enumerate(paragraphs):
-            paragraph_number = f"Page {page_num + 1}, Paragraph {i + 1}:{paragraph}\n"
-            #print(paragraph_number)
-            all_para.append(paragraph_number)
+            if paragraph.endswith('-'):
+                merged_paragraph += paragraph.rstrip('-')
+            else:
+                if merged_paragraph:
+                    merged_paragraph += paragraph
+                    paragraph_number = f'Paragraph {i}'
+                    all_para[paragraph_number] = merged_paragraph
+                    merged_paragraph = ''
+                else:
+                    paragraph_number = f'Paragraph {i + 1}'
+                    all_para[paragraph_number] = paragraph
+        if merged_paragraph:
+            paragraph_number = f'Paragraph {len(paragraphs)}'
+            all_para[paragraph_number] = merged_paragraph
         return all_para
                                 
     # 建立 PDF 的簡單大綱，包含頁碼和內容
@@ -138,30 +151,30 @@ class PDFProcessor:
             pdf_reader = PdfReader(file)
             num_pages = len(pdf_reader.pages)
             outline = {
-                'children': []
+                'file_info':[],
+                'pages':[]
             }
-            content_all=self.classify_text_by_font_size()
+            file_info={
+                'filename':self.pdf_file,
+                'pages':num_pages
+                }
+            outline['file_info'].append(file_info)
+            header_texts,content_texts=self.classify_text_by_font_size()
             for page_num in range(num_pages):
-                for category, texts in content_all.items():
-                    content = texts[page_num]
-                    if category == 'header':
+                for category1, texts1 in header_texts.items():
+                    for category2, texts2 in content_texts.items():
+                        header = texts1[page_num]
+                        content = texts2[page_num]
                         page_node = {
-                            'title': f'Page {page_num + 1}',
                             'page': page_num + 1,
-                            'category': category,
-                            'header': content,
-                            
+                            'template': [],
+                            'paragraphs':content
                         }
-                        outline['children'].append(page_node)
-                    else:
-                        page_node = {
-                            'title': f'Page {page_num + 1}',
-                            'page': page_num + 1,
-                            'category': category,
-                            'content': content,
-                            
-                        }
-                        outline['children'].append(page_node)
+                        outline['pages'].append(page_node)
+                        template={
+                            category1:header
+                            }
+                        page_node['template'].append(template)
         return outline
         
     # 處理 PDF，提取圖片、表格並建立大綱

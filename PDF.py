@@ -24,7 +24,6 @@ class PDFProcessor:
                     
     # 讀取 PDF 的表格並儲存成獨立的 csv 檔案
     def extract_tables(self, odname=None):
-        odname = None
         pdf_path = self.pdf_file
         pdf = pdfplumber.open(pdf_path)
         already_taken = 'False'
@@ -46,9 +45,9 @@ class PDFProcessor:
                     continue
                 for t, table in enumerate(tables):
                     if odname != None:
-                        csv_name = os.path.join(odname, f'table{t+1}_{pagenum+1}.csv',index=False)
+                        csv_name = os.path.join(odname, f'page{pagenum+1}_table{t+1}.csv',index=False)
                     else:
-                        csv_name = f'table{t+1}_{pagenum+1}.csv'
+                        csv_name = f'page{pagenum+1}_table{t+1}.csv'
                     if already_taken == 'True':
                         if table == tables[0]:
                             continue
@@ -62,11 +61,21 @@ class PDFProcessor:
                         for page_table in range(1, count+1):
                             table += pdf.pages[pagenum+page_table].extract_tables()[0]
                         combined_table = pd.DataFrame(table[1:], columns = table[0])
-                        combined_table.to_csv(csv_name,index=False)
+                        combined_table.rename(columns={None: '#'}, inplace=True)
+                        for index, row in combined_table.iterrows():
+                            for col in range(0, len(combined_table.columns)):
+                                if combined_table.iat[index, col] == None:
+                                    combined_table.iat[index, col] = '#'
+                        combined_table.to_csv(csv_name, index=False, encoding='utf-8')
                         already_taken = 'True'
                         continue
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
-                    df_detail.to_csv(csv_name,index=False)
+                    df_detail.rename(columns={None: '#'}, inplace=True)
+                    for index, row in df_detail.iterrows():
+                        for col in range(0, len(df_detail.columns)):
+                            if df_detail.iat[index, col] == None:
+                                df_detail.iat[index, col] = '#'
+                    df_detail.to_csv(csv_name, index=False, encoding='utf-8')
         
             else:
                 if count > 1:
@@ -74,15 +83,20 @@ class PDFProcessor:
                     continue
                 for t2, table in enumerate(tables):
                     if odname != None:
-                        csv_name = os.path.join(odname, f'table{t2+1}_{pagenum+1}.csv',index=False)
+                        csv_name = os.path.join(odname, f'page{pagenum+1}_table{t2+1}.csv',index=False)
                     else:
-                        csv_name = f'table{t2+1}_{pagenum+1}.csv'
+                        csv_name = f'page{pagenum+1}_table{t2+1}.csv'
                     if already_taken == 'True':
                         if table == tables[0]:
                             already_taken = 'False'
                             continue
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
-                    df_detail.to_csv(csv_name,index=False)
+                    df_detail.rename(columns={None: '#'}, inplace=True)
+                    for index, row in df_detail.iterrows():
+                        for col in range(0, len(df_detail.columns)):
+                            if df_detail.iat[index, col] == None:
+                                df_detail.iat[index, col] = '#'
+                    df_detail.to_csv(csv_name, index=False, encoding='utf-8')
                     already_taken = 'False'
         return
     

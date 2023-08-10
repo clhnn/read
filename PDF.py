@@ -138,25 +138,14 @@ class PDFProcessor:
 
 
     # 讀取 PDF 的每頁的段落
-    def extract_paragraphs(self, text, page_num):
-        paragraphs = text.split(' \n')
-        all_para = {}
-        merged_paragraph = ''
+    def extract_paragraphs(self,text,page_num):
+        paragraphs = text.split(' \n') 
+        all_para={}
+        while '' in paragraphs:
+            paragraphs.remove('')
         for i, paragraph in enumerate(paragraphs):
-            if paragraph.endswith('-'):
-                merged_paragraph += paragraph.rstrip('-')
-            else:
-                if merged_paragraph:
-                    merged_paragraph += paragraph
-                    paragraph_number = f'Paragraph {i}'
-                    all_para[paragraph_number] = merged_paragraph
-                    merged_paragraph = ''
-                else:
-                    paragraph_number = f'Paragraph {i + 1}'
-                    all_para[paragraph_number] = paragraph
-        if merged_paragraph:
-            paragraph_number = f'Paragraph {len(paragraphs)}'
-            all_para[paragraph_number] = merged_paragraph
+            paragraph_number=f'Paragraph {i + 1}'
+            all_para[paragraph_number]=paragraph
         return all_para
                                 
     # 建立 PDF 的簡單大綱，包含頁碼和內容
@@ -214,7 +203,7 @@ class PDFProcessor:
 if __name__ == '__main__':
     
     # 請將 "your file name.pdf" 替換為要處理的實際 PDF 檔案名稱
-    pdf_processor = PDFProcessor("demo2-5.pdf")
+    pdf_processor = PDFProcessor("your name file.pdf")
 
     #從PDF中提取圖片
     pdf_processor.extract_images()

@@ -113,23 +113,27 @@ def extract_tables(self, odname=None):
 'create_simple_outline'方法創建簡單大綱，包括每一頁的頁碼和內容。大綱以字典形式返回
 ```js
 # 建立 PDF 的簡單大綱，包含頁碼和內容
-def create_simple_outline(self):
-    with open(self.pdf_file, 'rb') as file:
-        pdf_reader = PdfReader(file)
-        num_pages = len(pdf_reader.pages)
-        outline = {
-            'children': []
-        }
-        for page_num in range(num_pages):
-            page = pdf_reader.pages[page_num]
-            content = page.extract_text()
-            page_node = {
-                'title': f'Page {page_num + 1}',
-                'page': page_num + 1,
-                'content': content
+    def create_simple_outline(self):
+        with open(self.pdf_file, 'rb') as file:
+            pdf_reader = PdfReader(file)
+            num_pages = len(pdf_reader.pages)
+            outline = {
+                'file_info':[],
+                'pages':[]
             }
-            outline['children'].append(page_node)
-    return outline
+            file_info={
+                'filename':self.pdf_file,
+                'pages':num_pages
+                }
+            outline['file_info'].append(file_info)
+            content_texts=self.classify_text_by_font_size()
+            for page_num in range(num_pages):
+                page_node = {
+                    'page': page_num + 1,
+                    'paragraphs' : content_texts[page_num]
+                    }
+                outline['pages'].append(page_node)
+        return outline
 ```
 
 ###### 處理PDF

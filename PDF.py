@@ -11,7 +11,6 @@ class PDFProcessor:
     # 初始化方法，設定要處理的 PDF 檔案名稱    
     def __init__(self, pdf_file):
         self.pdf_file = pdf_file
-        self.font_size_threshold = 12     #字體大小閾值，可根據需要進行調整
         
     # 讀取 PDF 的圖片並儲存成檔案   
     def extract_images(self):

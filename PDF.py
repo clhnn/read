@@ -113,6 +113,7 @@ class PDFProcessor:
             paragraph_text = []
             for line in text.split('\n'):
                 if line.strip():
+                    line = line.strip()
                     font_size = None
                     for block in page.get_text("dict")['blocks']:
                         if 'lines' in block:

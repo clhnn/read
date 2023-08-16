@@ -99,21 +99,18 @@ class PDFProcessor:
                     already_taken = 'False'
         return
     
-    # 讀取 PDF 內文
+    # 讀取 PDF 頁首頁碼內文
     def classify_text_by_font_size(self):
+        header_texts = {'header': []}
+        content_texts = {'content': []}
         texts = []
-        content_texts = {}
-        paragraph_texts = {}
-        #all_para={}
-        font_size_threshold = 1
-        count = 0
         pdf_document = fitz.open(self.pdf_file)
         paragraph_texts = ''
         for page_num in range(pdf_document.page_count):
             all_para={}
             page = pdf_document[page_num]
             text = page.get_text()
-            paragraph_text = ''
+            paragraph_text = []
             for line in text.split('\n'):
                 if line.strip():
                     font_size = None
@@ -128,32 +125,22 @@ class PDFProcessor:
                                     break
                         if font_size is not None:
                             break
-                    if font_size is not None and font_size == font_size_threshold:
-                        paragraph_text += line + '\n' 
-                    else:
-                        content_all_text = self.extract_paragraphs(paragraph_text,page_num,count)
-                        texts.append(content_all_text)
-                        paragraph_text = ''
-                        count += 1
-                        paragraph_text += line + '\n'
-                        font_size_threshold == font_size
-            if paragraph_text:
-                content_all_text = self.extract_paragraphs(paragraph_text, page_num, count)
-                texts.append(content_all_text)            
-            for i, paragraph in enumerate(texts):
-                paragraph_number=f'Paragraph {i + 1}'
-                all_para[paragraph_number]=paragraph
-            content_texts[page_num] = all_para
-            #content_texts[page_num] = texts
-            texts = []         
-        return content_texts  
+                    paragraph_text.append(line)
+                else:
+                    paragraph_text.append('##')    ##為空白行                    
+            content_all_text=self.extract_paragraphs(paragraph_text,page_num)
+            content_texts['content'].append(content_all_text)
+            texts = []
+        return content_texts 
 
     # 讀取 PDF 的每頁的段落
-    def extract_paragraphs(self,text,page_num,count):
-        page_text = text.strip('\n')
-        paragraphs = text.split(' \n') 
-        return paragraphs  #all_para
-        
+    def extract_paragraphs(self,text,page_num):
+        #page_text = text.strip('\n')
+        #paragraphs = page_text.split(' \n')
+        paragraphs = text 
+        return paragraphs  
+ 
+                                
     # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):
         with open(self.pdf_file, 'rb') as file:
@@ -170,11 +157,13 @@ class PDFProcessor:
             outline['file_info'].append(file_info)
             content_texts=self.classify_text_by_font_size()
             for page_num in range(num_pages):
-                page_node = {
-                    'page': page_num + 1,
-                    'paragraphs' : content_texts[page_num]
-                    }
-                outline['pages'].append(page_node)
+                for category2, texts2 in content_texts.items():
+                    content = texts2[page_num]
+                    page_node = {
+                        'page': page_num + 1,
+                        'paragraphs' : content
+                        }
+                    outline['pages'].append(page_node)
         return outline
         
     # 處理 PDF，提取圖片、表格並建立大綱

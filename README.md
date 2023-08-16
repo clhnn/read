@@ -111,10 +111,11 @@ def extract_tables(self, odname=None):
 ###### 讀取內文
 'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
 ```js
-def classify_text_by_font_size(self):        
+def classify_text_by_font_size(self):
     header_texts = {'header': []}
     content_texts = {'content': []}
     texts = []
+    item = ''
     pdf_document = fitz.open(self.pdf_file)
     paragraph_texts = ''
     for page_num in range(pdf_document.page_count):
@@ -133,16 +134,24 @@ def classify_text_by_font_size(self):
                                 if line in span['text']:
                                     font_size = span['size']
                                     break
-                             if font_size is not None:
+                            if font_size is not None:
                                 break
-                    if font_size is not None:
-                        break
-                paragraph_text.append(line)
+                        if font_size is not None:
+                            break
+                if self.is_line_potential_size(line) :
+                    item += line
+                else:
+                    if item != '':
+                        item += line
+                        paragraph_text.append(item)
+                        item = ''
+                        paragraph_text.append(line)
             else:
                 paragraph_text.append('##')    ##為空白行                    
-        content_all_text=self.extract_paragraphs(paragraph_text,page_num)
-        content_texts['content'].append(content_all_text)
-    return content_texts
+            content_all_text=self.extract_paragraphs(paragraph_text,page_num)
+            content_texts['content'].append(content_all_text)
+            texts = []
+        return content_texts
 ```
 
 ###### 讀取 PDF 的每頁的段落

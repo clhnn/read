@@ -148,10 +148,9 @@ def classify_text_by_font_size(self):
                         paragraph_text.append(line)
             else:
                 paragraph_text.append('##')    ##為空白行                    
-            content_all_text=self.extract_paragraphs(paragraph_text,page_num)
-            content_texts['content'].append(content_all_text)
-            texts = []
-        return content_texts
+        content_all_text=self.extract_paragraphs(paragraph_text,page_num)
+        content_texts['content'].append(content_all_text)
+    return content_texts
 ```
 
 ###### 讀取 PDF 的每頁的段落

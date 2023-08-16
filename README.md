@@ -109,6 +109,9 @@ def extract_tables(self, odname=None):
     return
 ```
 
+###### 讀取內文
+'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
+
 ###### 創建簡單大綱
 'create_simple_outline'方法創建簡單大綱，包括每一頁的頁碼和內容。大綱以字典形式返回
 ```js

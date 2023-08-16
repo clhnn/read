@@ -99,6 +99,19 @@ class PDFProcessor:
                     already_taken = 'False'
         return
     
+    #讀取 PDF 頁內文
+    def classify_text_by_row_data(self):
+        content_texts = {'content' : []}
+        content = []
+        pdf_document = fitz.open(self.pdf_file)
+        for page_num in range(pdf_document.page_count):
+            page = pdf_document[page_num]
+            text = self.extract_paragraphs(page.get_text(),page_num)
+            content.append(text)
+            #content.append(page)
+        content_texts['content'] = content
+        return content_texts
+    
     # 讀取 PDF 頁首頁碼內文
     def classify_text_by_font_size(self):
         header_texts = {'header': []}
@@ -108,7 +121,6 @@ class PDFProcessor:
         pdf_document = fitz.open(self.pdf_file)
         paragraph_texts = ''
         for page_num in range(pdf_document.page_count):
-            all_para={}
             page = pdf_document[page_num]
             text = page.get_text()
             paragraph_text = []
@@ -127,7 +139,7 @@ class PDFProcessor:
                                     break
                         if font_size is not None:
                             break
-                    if len(line) <= 4 :
+                    if self.is_line_potential_size(line) :
                         item += line
                     else:
                         if item != '':
@@ -139,7 +151,18 @@ class PDFProcessor:
                     paragraph_text.append('##')    ##為空白行                    
             content_all_text=self.extract_paragraphs(paragraph_text,page_num)
             content_texts['content'].append(content_all_text)
-        return content_texts  
+            texts = []
+        return content_texts
+    
+    #判斷line大小
+    def is_line_potential_size(self,line):
+    ##如果item大小不小於4可設正列
+     #  item =['1.','2.,.....]
+     #  if line == item:
+     #     return
+        if len(line) <= 4 :
+            return True
+        return False
 
     # 讀取 PDF 的每頁的段落
     def extract_paragraphs(self,text,page_num):
@@ -147,8 +170,7 @@ class PDFProcessor:
         #paragraphs = page_text.split(' \n')
         paragraphs = text 
         return paragraphs  
- 
-                                
+                         
     # 建立 PDF 的簡單大綱，包含頁碼和內容
     def create_simple_outline(self):
         with open(self.pdf_file, 'rb') as file:
@@ -163,7 +185,8 @@ class PDFProcessor:
                 'pages':num_pages
                 }
             outline['file_info'].append(file_info)
-            content_texts=self.classify_text_by_font_size()
+            #content_texts=self.classify_text_by_font_size()
+            content_texts=self.classify_text_by_row_data()
             for page_num in range(num_pages):
                 for category2, texts2 in content_texts.items():
                     content = texts2[page_num]
@@ -192,6 +215,7 @@ class PDFProcessor:
         with open("PDFtxt.json", "w", encoding='utf-8') as file:
             file.write(json_result)
         print("JSON result exported to PDFtxt.json")
+        return
         
 # 主程式部分
 if __name__ == '__main__':

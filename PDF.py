@@ -104,6 +104,7 @@ class PDFProcessor:
         header_texts = {'header': []}
         content_texts = {'content': []}
         texts = []
+        item = ''
         pdf_document = fitz.open(self.pdf_file)
         paragraph_texts = ''
         for page_num in range(pdf_document.page_count):
@@ -126,12 +127,19 @@ class PDFProcessor:
                                     break
                         if font_size is not None:
                             break
-                    paragraph_text.append(line)
+                    if len(line) <= 4 :
+                        item += line
+                    else:
+                        if item != '':
+                            item += line
+                            paragraph_text.append(item)
+                            item = ''
+                        paragraph_text.append(line)
                 else:
                     paragraph_text.append('##')    ##為空白行                    
             content_all_text=self.extract_paragraphs(paragraph_text,page_num)
             content_texts['content'].append(content_all_text)
-        return content_texts 
+        return content_texts  
 
     # 讀取 PDF 的每頁的段落
     def extract_paragraphs(self,text,page_num):

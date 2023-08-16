@@ -111,39 +111,39 @@ def extract_tables(self, odname=None):
 ###### 讀取內文
 'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
 '''js
-    def classify_text_by_font_size(self):
-        header_texts = {'header': []}
-        content_texts = {'content': []}
-        texts = []
-        pdf_document = fitz.open(self.pdf_file)
-        paragraph_texts = ''
-        for page_num in range(pdf_document.page_count):
-            all_para={}
-            page = pdf_document[page_num]
-            text = page.get_text()
-            paragraph_text = []
-            for line in text.split('\n'):
-                if line.strip():
-                    line = line.strip()
-                    font_size = None
-                    for block in page.get_text("dict")['blocks']:
-                        if 'lines' in block:
-                            for line_info in block['lines']:
-                                for span in line_info['spans']:
-                                    if line in span['text']:
-                                        font_size = span['size']
-                                        break
-                                if font_size is not None:
+def classify_text_by_font_size(self):        
+    header_texts = {'header': []}
+    content_texts = {'content': []}
+    texts = []
+    pdf_document = fitz.open(self.pdf_file)
+    paragraph_texts = ''
+    for page_num in range(pdf_document.page_count):
+        all_para={}
+        page = pdf_document[page_num]
+        text = page.get_text()
+        paragraph_text = []
+        for line in text.split('\n'):
+            if line.strip():
+                line = line.strip()
+                font_size = None
+                for block in page.get_text("dict")['blocks']:
+                    if 'lines' in block:
+                        for line_info in block['lines']:
+                            for span in line_info['spans']:
+                                if line in span['text']:
+                                    font_size = span['size']
                                     break
-                        if font_size is not None:
-                            break
-                    paragraph_text.append(line)
-                else:
-                    paragraph_text.append('##')    ##為空白行                    
-            content_all_text=self.extract_paragraphs(paragraph_text,page_num)
-            content_texts['content'].append(content_all_text)
-            texts = []
-        return content_texts
+                             if font_size is not None:
+                                break
+                    if font_size is not None:
+                        break
+                paragraph_text.append(line)
+            else:
+                paragraph_text.append('##')    ##為空白行                    
+        content_all_text=self.extract_paragraphs(paragraph_text,page_num)
+        content_texts['content'].append(content_all_text)
+        texts = []
+    return content_texts
 '''
 
 ###### 創建簡單大綱

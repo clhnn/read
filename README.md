@@ -146,6 +146,16 @@ def classify_text_by_font_size(self):
     return content_texts
 ```
 
+###### 讀取 PDF 的每頁的段落
+'extract_paragraphs()'此函數獲取文本行列表並將它們分組為段落。它消除空行並為每頁生成段落列表。函數內部調用該函數classify_text_by_font_size()來處理每一頁文本的行。
+```js
+def extract_paragraphs(self,text,page_num):
+    #page_text = text.strip('\n')
+    #paragraphs = page_text.split(' \n')
+    paragraphs = text 
+    return paragraphs
+```
+
 ###### 創建簡單大綱
 'create_simple_outline'方法創建簡單大綱，包括每一頁的頁碼和內容。大綱以字典形式返回
 ```js

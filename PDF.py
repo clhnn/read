@@ -150,7 +150,7 @@ class PDFProcessor:
 
     # 讀取 PDF 的每頁的段落
     def extract_paragraphs(self,text,page_num,count):
-        #page_text = text.strip('\n')
+        page_text = text.strip('\n')
         paragraphs = text.split(' \n') 
         return paragraphs  #all_para
         

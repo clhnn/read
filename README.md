@@ -128,11 +128,13 @@ def extract_tables(self, odname=None):
             outline['file_info'].append(file_info)
             content_texts=self.classify_text_by_font_size()
             for page_num in range(num_pages):
-                page_node = {
-                    'page': page_num + 1,
-                    'paragraphs' : content_texts[page_num]
-                    }
-                outline['pages'].append(page_node)
+                for category2, texts2 in content_texts.items():
+                    content = texts2[page_num]
+                    page_node = {
+                        'page': page_num + 1,
+                        'paragraphs' : content
+                        }
+                    outline['pages'].append(page_node)
         return outline
 ```
 

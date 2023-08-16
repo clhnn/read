@@ -185,8 +185,8 @@ class PDFProcessor:
                 'pages':num_pages
                 }
             outline['file_info'].append(file_info)
-            content_texts=self.classify_text_by_font_size() 
-            #content_texts=self.classify_text_by_row_data()
+            content_texts=self.classify_text_by_font_size()  #PDF text 依行及font size隔開
+            #content_texts=self.classify_text_by_row_data()  #PDF text 依整頁進行讀取
             for page_num in range(num_pages):
                 for category2, texts2 in content_texts.items():
                     content = texts2[page_num]

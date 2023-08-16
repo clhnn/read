@@ -12,7 +12,6 @@
 # 初始化方法，設定要處理的 PDF 檔案名稱
 def __init__(self, pdf_file):
     self.pdf_file = pdf_file
-    self.font_size_threshold = 12     #字體大小閾值，可根據需要進行調整
 ```
 
 ###### 提取圖片
@@ -112,7 +111,6 @@ def extract_tables(self, odname=None):
 ###### 讀取內文
 'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
 '''js
-# 讀取 PDF 頁首頁碼內文
     def classify_text_by_font_size(self):
         header_texts = {'header': []}
         content_texts = {'content': []}

@@ -131,7 +131,6 @@ class PDFProcessor:
                     paragraph_text.append('##')    ##為空白行                    
             content_all_text=self.extract_paragraphs(paragraph_text,page_num)
             content_texts['content'].append(content_all_text)
-            texts = []
         return content_texts 
 
     # 讀取 PDF 的每頁的段落

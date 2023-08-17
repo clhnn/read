@@ -109,7 +109,24 @@ def extract_tables(self, odname=None):
 ```
 
 ###### 讀取內文
-'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
+`有兩種分類方法`
+
+1.'classify_text_by_row_data()' 函數：這個方法將文本按行進行分類，不考慮字體大小。適用於文本結構較簡單的 PDF。
+```js
+def classify_text_by_row_data(self):
+    content_texts = {'content' : []}
+    content = []
+    pdf_document = fitz.open(self.pdf_file)
+    for page_num in range(pdf_document.page_count):
+        page = pdf_document[page_num]
+        text = self.extract_paragraphs(page.get_text(),page_num)
+        content.append(text)
+        #content.append(page)
+    content_texts['content'] = content
+    return content_texts
+```
+
+2.'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
 ```js
 def classify_text_by_font_size(self):
     header_texts = {'header': []}

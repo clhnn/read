@@ -125,7 +125,7 @@ def classify_text_by_row_data(self):
     return content_texts
 ```
 
-2.'classify_text_by_font_size' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
+2.'classify_text_by_font_size()' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
 ```js
 def classify_text_by_font_size(self):
     header_texts = {'header': []}
@@ -167,6 +167,19 @@ def classify_text_by_font_size(self):
         content_all_text=self.extract_paragraphs(paragraph_text,page_num)
         content_texts['content'].append(content_all_text)
     return content_texts
+```
+
+###### 判斷line大小
+'is_line_potential_size()'此函數為讀取'classify_text_by_font_size()'裡line的值
+```js
+def is_line_potential_size(self,line):
+##如果item大小不小於4可設正列
+     #  item =['1.','2.,.....]
+     #  if line == item:
+     #     return
+        if len(line) <= 4 :
+            return True
+        return False
 ```
 
 ###### 讀取 PDF 的每頁的段落

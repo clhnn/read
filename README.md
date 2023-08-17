@@ -171,7 +171,7 @@ def classify_text_by_font_size(self):
 
 ###### 判斷line大小
 'is_line_potential_size()'此函數用於判斷'classify_text_by_font_size()'給定的文本行是否具有潛在的大小特徵，並根據一個特定的標準來確定是否可以將該行視為有效行
-`##為若遇到長度判斷問題時能進行修改成正烈假設假設`
+`##為若遇到長度判斷問題時能進行修改成正列假設`
 ```js
 def is_line_potential_size(self,line):
 ##如果item大小不小於4可設正列

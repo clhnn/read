@@ -111,7 +111,7 @@ def extract_tables(self, odname=None):
 ###### 讀取內文
 `有兩種分類方法`
 
-1.'classify_text_by_row_data()' 函數：這個方法將文本按行進行分類，不考慮字體大小。適用於文本結構較簡單的 PDF。
+1.'classify_text_by_row_data()' 函數：這個方法將文本按行進行分類，不考慮字體大小。適用於文本結構較簡單的 PDF
 ```js
 def classify_text_by_row_data(self):
     content_texts = {'content' : []}
@@ -125,7 +125,7 @@ def classify_text_by_row_data(self):
     return content_texts
 ```
 
-2.'classify_text_by_font_size()' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容。
+2.'classify_text_by_font_size()' 函數：將 PDF 文件中的文字按照字體大小分類。它會遍歷每一頁，然後根據字體大小閾值將文字分為不同的段落，並返回每個段落的內容
 ```js
 def classify_text_by_font_size(self):
     header_texts = {'header': []}
@@ -170,7 +170,8 @@ def classify_text_by_font_size(self):
 ```
 
 ###### 判斷line大小
-'is_line_potential_size()'此函數為讀取'classify_text_by_font_size()'裡line的值
+'is_line_potential_size()'此函數用於判斷'classify_text_by_font_size()'給定的文本行是否具有潛在的大小特徵，並根據一個特定的標準來確定是否可以將該行視為有效行
+`##為若遇到長度判斷問題時能進行修改成正烈假設假設`
 ```js
 def is_line_potential_size(self,line):
 ##如果item大小不小於4可設正列
@@ -183,7 +184,7 @@ def is_line_potential_size(self,line):
 ```
 
 ###### 讀取 PDF 的每頁的段落
-'extract_paragraphs()'此函數獲取文本行列表並將它們分組為段落。它消除空行並為每頁生成段落列表。函數內部調用該函數classify_text_by_font_size()來處理每一頁文本的行。
+'extract_paragraphs()'此函數獲取文本行列表並將它們分組為段落。它消除空行並為每頁生成段落列表。函數內部調用該函數classify_text_by_font_size()來處理每一頁文本的行
 ```js
 def extract_paragraphs(self,text,page_num):
     #page_text = text.strip('\n')

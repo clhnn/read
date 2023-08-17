@@ -121,7 +121,6 @@ def classify_text_by_row_data(self):
         page = pdf_document[page_num]
         text = self.extract_paragraphs(page.get_text(),page_num)
         content.append(text)
-        #content.append(page)
     content_texts['content'] = content
     return content_texts
 ```

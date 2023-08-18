@@ -30,50 +30,97 @@ def extract_images(self):
 ###### 提取表格
 'extract_tables'方法從PDF文件中提取表格，並將每個表格保存為單獨的csv文件，而不規則表格中如出現合併表格，除了輸出表示該格的值，其餘格子將輸出'#'
 ```js
-def extract_tables(self, odname=None):
+def extract_tables(self):
     pdf_path = self.pdf_file
     pdf = pdfplumber.open(pdf_path)
     already_taken = 'False'
     count = 1
+    csv_name = []
+    csv_name_up = []
+    csv_name_down = []
 
     for pagenum, page in enumerate(pdf.pages):
+        if pagenum > 9:
+            break
         print('>>checking table at page %d'%(pagenum))
         tables = page.extract_tables()
+        table_num = 0
 
         if not tables:
             print('>>skipped table at page %d'%(pagenum))
             continue
-    
+        chars = pdf.pages[pagenum].chars
         table_bottom = pdf.pages[pagenum].bbox[3]-pdf.pages[pagenum].find_tables()[-1].bbox[3]-30 <= pdf.pages[pagenum].chars[-1].get('y0')
-    
+        
         if table_bottom:
-            if count > 1:
+            if count > 2:
                 count -= 1
                 continue
+            if count == 2:
+                count -=1
             for t, table in enumerate(tables):
-                if odname != None:
-                    csv_name = os.path.join(odname, f'page{pagenum+1}_table{t+1}.csv',index=False)
-                else:
-                    csv_name = f'page{pagenum+1}_table{t+1}.csv'
                 if already_taken == 'True':
                     if table == tables[0]:
+                        table_num += 1
+                        already_taken = 'False'
                         continue
+                length_up = []
+                length_down = []
+                csv_name = []
+                csv_name_up = []
+                csv_name_down = []
                 if table == tables[-1] and (pagenum < len(pdf.pages)-1):
+                    count += 1
                     for c in range(1, len(pdf.pages)+1):
                         if pdf.pages[pagenum+c].extract_tables()[0] != pdf.pages[pagenum+c].extract_tables()[-1]:
                             break
                         if pdf.pages[pagenum+c].bbox[3]-pdf.pages[pagenum+c].find_tables()[-1].bbox[3]-30 > pdf.pages[pagenum+c].chars[-1].get('y0'):
                             break
                         count += 1
-                    for page_table in range(1, count+1):
+                    for page_table in range(1, count):
                         table += pdf.pages[pagenum+page_table].extract_tables()[0]
+                chars2 = pdf.pages[pagenum+count-1].chars
+                table_y0 = pdf.pages[pagenum].find_tables()[table_num].bbox[1]
+                table_y1 = pdf.pages[pagenum].find_tables()[table_num].bbox[3]
+                if count > 1:
+                    table_y1 = pdf.pages[pagenum+count-1].find_tables()[0].bbox[3]
+                for char in range(0, len(chars)):
+                    char_info = pdf.pages[pagenum].chars[char]
+                    if char_info.get('bottom') < table_y0:
+                        bottom = int(table_y0-(char_info.get('bottom')))
+                        length_up.append(bottom)
+                for char in range(0, len(chars2)):
+                    char_info = pdf.pages[pagenum+count-1].chars[char]
+                    if char_info.get('top') > table_y1:
+                        top = int(char_info.get('top')-table_y1)
+                        length_down.append(top)
+                for char in range(0, len(chars)):
+                    char_info = pdf.pages[pagenum].chars[char]
+                    if char_info.get('bottom') < table_y0:
+                        lone_up = int(table_y0-(char_info.get('bottom')))
+                        if lone_up == min(length_up):
+                            csv_name_up += char_info.get('text')
+                            csv_name_up = "".join(csv_name_up)
+                for char in range(0, len(chars2)):
+                    char_info = pdf.pages[pagenum+count-1].chars[char]
+                    if char_info.get('top') > table_y1:
+                        lone_down = int(char_info.get('top')-table_y1)
+                        if lone_down == min(length_down):
+                            csv_name_down += char_info.get('text')
+                            csv_name_down = "".join(csv_name_down)
+                if csv_name_up == ' ':
+                    csv_name = f'{csv_name_down}.csv'
+                else:
+                    csv_name = f'{csv_name_up}.csv'
+                if count > 1:
                     combined_table = pd.DataFrame(table[1:], columns = table[0])
                     combined_table.rename(columns={None: '#'}, inplace=True)
                     for index, row in combined_table.iterrows():
                         for col in range(0, len(combined_table.columns)):
                             if combined_table.iat[index, col] == None:
                                 combined_table.iat[index, col] = '#'
-                    combined_table.to_csv(csv_name,index=False)
+                    combined_table.to_csv(csv_name, index=False, encoding='utf-8')
+                    table_num += 1
                     already_taken = 'True'
                     continue
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
@@ -82,28 +129,58 @@ def extract_tables(self, odname=None):
                     for col in range(0, len(df_detail.columns)):
                         if df_detail.iat[index, col] == None:
                             df_detail.iat[index, col] = '#'
-                df_detail.to_csv(csv_name,index=False)
-
+                df_detail.to_csv(csv_name, index=False, encoding='utf-8')
+                table_num += 1
+    
         else:
-            if count > 1:
+            if count > 2:
                 count -= 1
                 continue
             for t2, table in enumerate(tables):
-                if odname != None:
-                    csv_name = os.path.join(odname, f'page{pagenum+1}_table{t2+1}.csv',index=False)
-                else:
-                    csv_name = f'page{pagenum+1}_table{t2+1}.csv'
                 if already_taken == 'True':
                     if table == tables[0]:
+                        table_num += 1
                         already_taken = 'False'
                         continue
+                length_up = []
+                length_down = []
+                csv_name = []
+                csv_name_up = []
+                csv_name_down = []
+                table_y0 = pdf.pages[pagenum].find_tables()[table_num].bbox[1]
+                table_y1 = pdf.pages[pagenum].find_tables()[table_num].bbox[3]
+                for char in range(0, len(chars)):
+                    char_info = pdf.pages[pagenum].chars[char]
+                    if char_info.get('bottom') < table_y0:
+                        bottom = int(table_y0-(char_info.get('bottom')))
+                        length_up.append(bottom)
+                    elif char_info.get('top') > table_y1:
+                        top = int(char_info.get('top')-table_y1)
+                        length_down.append(top)
+                for char in range(0, len(chars)):
+                    char_info = pdf.pages[pagenum].chars[char]
+                    if char_info.get('bottom') < table_y0:
+                        lone_up = int(table_y0-(char_info.get('bottom')))
+                        if lone_up == min(length_up):
+                            csv_name_up += char_info.get('text')
+                            csv_name_up = "".join(csv_name_up)
+                    elif char_info.get('top') > table_y1:
+                        lone_down = int(char_info.get('top')-table_y1)
+                        if lone_down == min(length_down):
+                            csv_name_down += char_info.get('text')
+                            csv_name_down = "".join(csv_name_down)
+                if csv_name_up == ' ':
+                    csv_name = f'{csv_name_down}.csv'
+                else:
+                    csv_name = f'{csv_name_up}.csv'
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
                 df_detail.rename(columns={None: '#'}, inplace=True)
                 for index, row in df_detail.iterrows():
                     for col in range(0, len(df_detail.columns)):
                         if df_detail.iat[index, col] == None:
                             df_detail.iat[index, col] = '#'
-                df_detail.to_csv(csv_name,index=False)
+                df_detail.to_csv(csv_name, index=False, encoding='utf-8')
+                table_num += 1
                 already_taken = 'False'
     return
 ```

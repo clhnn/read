@@ -27,9 +27,6 @@ class PDFProcessor:
         pdf = pdfplumber.open(pdf_path)
         already_taken = 'False'
         count = 1
-        csv_name = []
-        csv_name_up = []
-        csv_name_down = []
         
         for pagenum, page in enumerate(pdf.pages):
             print('>>checking table at page %d'%(pagenum))
@@ -39,9 +36,10 @@ class PDFProcessor:
             if not tables:
                 print('>>skipped table at page %d'%(pagenum))
                 continue
+                
             chars = pdf.pages[pagenum].chars
             table_bottom = pdf.pages[pagenum].bbox[3]-pdf.pages[pagenum].find_tables()[-1].bbox[3]-30 <= pdf.pages[pagenum].chars[-1].get('y0')
-    
+            
             if table_bottom:
                 if count > 2:
                     count -= 1
@@ -99,8 +97,14 @@ class PDFProcessor:
                                 csv_name_down += char_info.get('text')
                                 csv_name_down = "".join(csv_name_down)
                     if csv_name_up == ' ':
+                        for name in csv_name_down:
+                            if name == ':':
+                                csv_name_down = csv_name_down.replace(':', '.')
                         csv_name = f'{csv_name_down}.csv'
                     else:
+                        for name in csv_name_up:
+                            if name == ':':
+                                csv_name_up = csv_name_up.replace(':', '.')
                         csv_name = f'{csv_name_up}.csv'
                     if count > 1:
                         combined_table = pd.DataFrame(table[1:], columns = table[0])
@@ -160,8 +164,14 @@ class PDFProcessor:
                                 csv_name_down += char_info.get('text')
                                 csv_name_down = "".join(csv_name_down)
                     if csv_name_up == ' ':
+                        for name in csv_name_down:
+                            if name == ':':
+                                csv_name_down = csv_name_down.replace(':', '.')
                         csv_name = f'{csv_name_down}.csv'
                     else:
+                        for name in csv_name_up:
+                            if name == ':':
+                                csv_name_up = csv_name_up.replace(':', '.')
                         csv_name = f'{csv_name_up}.csv'
                     df_detail = pd.DataFrame(table[1:], columns = table[0])
                     df_detail.rename(columns={None: '#'}, inplace=True)

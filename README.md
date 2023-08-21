@@ -40,8 +40,6 @@ def extract_tables(self):
     csv_name_down = []
 
     for pagenum, page in enumerate(pdf.pages):
-        if pagenum > 9:
-            break
         print('>>checking table at page %d'%(pagenum))
         tables = page.extract_tables()
         table_num = 0

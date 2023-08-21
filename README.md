@@ -43,7 +43,7 @@ def extract_tables(self):
         print('>>checking table at page %d'%(pagenum))
         tables = page.extract_tables()
         table_num = 0
-
+    
         if not tables:
             print('>>skipped table at page %d'%(pagenum))
             continue
@@ -107,8 +107,14 @@ def extract_tables(self):
                             csv_name_down += char_info.get('text')
                             csv_name_down = "".join(csv_name_down)
                 if csv_name_up == ' ':
+                    for name in csv_name_down:
+                        if name == ':':
+                            csv_name_down = csv_name_down.replace(':', '.')
                     csv_name = f'{csv_name_down}.csv'
                 else:
+                    for name in csv_name_up:
+                        if name == ':':
+                            csv_name_up = csv_name_up.replace(':', '.')
                     csv_name = f'{csv_name_up}.csv'
                 if count > 1:
                     combined_table = pd.DataFrame(table[1:], columns = table[0])
@@ -168,8 +174,14 @@ def extract_tables(self):
                             csv_name_down += char_info.get('text')
                             csv_name_down = "".join(csv_name_down)
                 if csv_name_up == ' ':
+                    for name in csv_name_down:
+                        if name == ':':
+                            csv_name_down = csv_name_down.replace(':', '.')
                     csv_name = f'{csv_name_down}.csv'
                 else:
+                    for name in csv_name_up:
+                        if name == ':':
+                            csv_name_up = csv_name_up.replace(':', '.')
                     csv_name = f'{csv_name_up}.csv'
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
                 df_detail.rename(columns={None: '#'}, inplace=True)

@@ -35,9 +35,6 @@ def extract_tables(self):
     pdf = pdfplumber.open(pdf_path)
     already_taken = 'False'
     count = 1
-    csv_name = []
-    csv_name_up = []
-    csv_name_down = []
 
     for pagenum, page in enumerate(pdf.pages):
         print('>>checking table at page %d'%(pagenum))
@@ -62,6 +59,51 @@ def extract_tables(self):
                         table_num += 1
                         already_taken = 'False'
                         continue
+                equation_location = []
+                superscript_liat = []
+                subscript_list = []
+                word_num = 0
+                for word in range(0 ,len(chars)):
+                    if word_num > 0:
+                        word_num -= 1
+                        continue
+                    char_infomat = pdf.pages[pagenum].chars
+                    standard_size = char_infomat[word].get('size')
+                    standard_bottom = char_infomat[word].get('bottom')
+                    if char_infomat[word].get('text') == ' ':
+                        if char_infomat[word] == char_infomat[-1]:
+                            break
+                        standard_size = char_infomat[word+1].get('size')
+                        standard_bottom = char_infomat[word+1].get('bottom')
+                        continue
+                    if char_infomat[word+1].get('size') < standard_size:
+                        location = ''
+                        location += char_infomat[word-1].get('text')
+                        location += char_infomat[word].get('text')
+                        already_have_sub = 'False'
+                        already_have_super = 'False'
+                        for word_num in range(1, len(chars)+1):
+                            if (standard_size - char_infomat[word+word_num].get('size')) > 3:
+                                if char_infomat[word+word_num].get('bottom')+0.1 > standard_bottom:
+                                    letter = char_infomat[word+word_num].get('text')
+                                    if already_have_sub == 'True':
+                                        location += letter
+                                    else:
+                                        location += f'_{letter}'
+                                        already_have_sub = 'True'
+                                if char_infomat[word+word_num].get('bottom')+0.1 < standard_bottom:
+                                    letter = char_infomat[word+word_num].get('text')
+                                    if already_have_super == 'True':
+                                        location += letter
+                                    else:
+                                        location += f'^{letter}'
+                                        already_have_super = 'True'
+                            else:
+                                location += char_infomat[word+word_num].get('text')
+                                break
+                        equation_location.append(location)
+                equation_location = set(equation_location)
+                equation_location = list(equation_location)
                 length_up = []
                 length_down = []
                 csv_name = []
@@ -107,15 +149,62 @@ def extract_tables(self):
                             csv_name_down += char_info.get('text')
                             csv_name_down = "".join(csv_name_down)
                 if csv_name_up == ' ':
+                    csv_name_down = csv_name_down[::-1]
                     for name in csv_name_down:
                         if name == ':':
                             csv_name_down = csv_name_down.replace(':', '.')
+                    for name in csv_name_down:
+                        if name == '.':
+                            csv_name_down = csv_name_down.replace('.', '', 1)
+                        elif name == ' ':
+                            csv_name_down = csv_name_down.replace(' ', '', 1)
+                        else:
+                            break
+                    csv_name_down = csv_name_down[::-1]
                     csv_name = f'{csv_name_down}.csv'
                 else:
+                    csv_name_up = csv_name_up[::-1]
                     for name in csv_name_up:
                         if name == ':':
                             csv_name_up = csv_name_up.replace(':', '.')
+                    for name in csv_name_up:
+                        if name == '.':
+                            csv_name_up = csv_name_up.replace('.', '', 1)
+                        elif name == ' ':
+                            csv_name_up = csv_name_up.replace(' ', '', 1)
+                        else:
+                            break
+                    csv_name_up = csv_name_up[::-1]
                     csv_name = f'{csv_name_up}.csv'
+                for list_index, lists in enumerate(table):
+                    for lines_index, lines in enumerate(lists):
+                        if lines == None:
+                            continue
+                        renew = lines.replace('', 'μ') #不等於
+                        renew = renew.replace('', '*') #項目(方形)
+                        for renew_equation in equation_location:
+                            if renew_equation[0] not in renew:
+                                continue
+                            if len(renew_equation) <= 3 or renew_equation == '\uf06e':
+                                continue
+                            sup_and_super_list = renew_equation.replace('_', ' ')
+                            sup_and_super_list = sup_and_super_list.replace('^', ' ')
+                            sup_and_super_list = sup_and_super_list.replace(f'{renew_equation[0]}{renew_equation[1]} ', '')
+                            sup_and_super_list = sup_and_super_list.replace(f'{renew_equation[-1]}', '')
+                            sup_and_super_list = sup_and_super_list.split(' ')
+                            for sub_and_super in sup_and_super_list:
+                                renew = renew.replace(f'\n{sub_and_super}', '')
+                                renew = renew.replace(f'{sub_and_super}\n', '')
+                        for renew_equation in equation_location:
+                            middle = ' '
+                            if '^' in renew_equation:
+                                middle = renew_equation.replace(middle[-1], '')
+                                middle = middle.split('^')
+                                middle = middle.replace(middle[0], '')
+                            renew = renew.replace(f'{renew_equation[0]}{renew_equation[1]}{renew_equation[-1]}', f"{renew_equation[:-1:]} {renew_equation[-1]}")
+                            renew = renew.replace(f'{renew_equation[0]}{renew_equation[1]}{middle}{renew_equation[-1]}', f"{renew_equation[:-1:]} {renew_equation[-1]}")
+                        lists[lines_index] = renew
+                    table[list_index] = lists
                 if count > 1:
                     combined_table = pd.DataFrame(table[1:], columns = table[0])
                     combined_table.rename(columns={None: '#'}, inplace=True)
@@ -146,19 +235,75 @@ def extract_tables(self):
                         table_num += 1
                         already_taken = 'False'
                         continue
+                for word in range(0 ,len(chars)):
+                    if word_num > 0:
+                        word_num -= 1
+                        continue
+                    char_infomat = pdf.pages[pagenum].chars
+                    standard_size = char_infomat[word].get('size')
+                    standard_bottom = char_infomat[word].get('bottom')
+                    if char_infomat[word].get('text') == ' ':
+                        if char_infomat[word] == char_infomat[-1]:
+                            break
+                        standard_size = char_infomat[word+1].get('size')
+                        standard_bottom = char_infomat[word+1].get('bottom')
+                        continue
+                    if char_infomat[word+1].get('size') < standard_size:
+                        location = ''
+                        location += char_infomat[word-1].get('text')
+                        location += char_infomat[word].get('text')
+                        already_have_sub = 'False'
+                        already_have_super = 'False'
+                        for word_num in range(1, len(chars)+1):
+                            if (standard_size - char_infomat[word+word_num].get('size')) > 3:
+                                if char_infomat[word+word_num].get('bottom')+0.1 > standard_bottom:
+                                    letter = char_infomat[word+word_num].get('text')
+                                    if already_have_sub == 'True':
+                                        location += letter
+                                    else:
+                                        location += f'_{letter}'
+                                        already_have_sub = 'True'
+                                if char_infomat[word+word_num].get('bottom')+0.1 < standard_bottom:
+                                    letter = char_infomat[word+word_num].get('text')
+                                    if already_have_super == 'True':
+                                        location += letter
+                                    else:
+                                        location += f'^{letter}'
+                                        already_have_super = 'True'
+                            else:
+                                location += char_infomat[word+word_num].get('text')
+                                break
+                        equation_location.append(location)
+                equation_location = set(equation_location)
+                equation_location = list(equation_location)
                 length_up = []
                 length_down = []
                 csv_name = []
                 csv_name_up = []
                 csv_name_down = []
+                if table == tables[-1] and (pagenum < len(pdf.pages)-1):
+                    count += 1
+                    for c in range(1, len(pdf.pages)+1):
+                        if pdf.pages[pagenum+c].extract_tables()[0] != pdf.pages[pagenum+c].extract_tables()[-1]:
+                            break
+                        if pdf.pages[pagenum+c].bbox[3]-pdf.pages[pagenum+c].find_tables()[-1].bbox[3]-30 > pdf.pages[pagenum+c].chars[-1].get('y0'):
+                            break
+                        count += 1
+                    for page_table in range(1, count):
+                        table += pdf.pages[pagenum+page_table].extract_tables()[0]
+                chars2 = pdf.pages[pagenum+count-1].chars
                 table_y0 = pdf.pages[pagenum].find_tables()[table_num].bbox[1]
                 table_y1 = pdf.pages[pagenum].find_tables()[table_num].bbox[3]
+                if count > 1:
+                    table_y1 = pdf.pages[pagenum+count-1].find_tables()[0].bbox[3]
                 for char in range(0, len(chars)):
                     char_info = pdf.pages[pagenum].chars[char]
                     if char_info.get('bottom') < table_y0:
                         bottom = int(table_y0-(char_info.get('bottom')))
                         length_up.append(bottom)
-                    elif char_info.get('top') > table_y1:
+                for char in range(0, len(chars2)):
+                    char_info = pdf.pages[pagenum+count-1].chars[char]
+                    if char_info.get('top') > table_y1:
                         top = int(char_info.get('top')-table_y1)
                         length_down.append(top)
                 for char in range(0, len(chars)):
@@ -168,21 +313,70 @@ def extract_tables(self):
                         if lone_up == min(length_up):
                             csv_name_up += char_info.get('text')
                             csv_name_up = "".join(csv_name_up)
-                    elif char_info.get('top') > table_y1:
+                for char in range(0, len(chars2)):
+                    char_info = pdf.pages[pagenum+count-1].chars[char]
+                    if char_info.get('top') > table_y1:
                         lone_down = int(char_info.get('top')-table_y1)
                         if lone_down == min(length_down):
                             csv_name_down += char_info.get('text')
                             csv_name_down = "".join(csv_name_down)
                 if csv_name_up == ' ':
+                    csv_name_down = csv_name_down[::-1]
                     for name in csv_name_down:
                         if name == ':':
                             csv_name_down = csv_name_down.replace(':', '.')
+                    for name in csv_name_down:
+                        if name == '.':
+                            csv_name_down = csv_name_down.replace('.', '', 1)
+                        elif name == ' ':
+                            csv_name_down = csv_name_down.replace(' ', '', 1)
+                        else:
+                            break
+                    csv_name_down = csv_name_down[::-1]
                     csv_name = f'{csv_name_down}.csv'
                 else:
+                    csv_name_up = csv_name_up[::-1]
                     for name in csv_name_up:
                         if name == ':':
                             csv_name_up = csv_name_up.replace(':', '.')
+                    for name in csv_name_up:
+                        if name == '.':
+                            csv_name_up = csv_name_up.replace('.', '', 1)
+                        elif name == ' ':
+                            csv_name_up = csv_name_up.replace(' ', '', 1)
+                        else:
+                            break
+                    csv_name_up = csv_name_up[::-1]
                     csv_name = f'{csv_name_up}.csv'
+                for list_index, lists in enumerate(table):
+                    for lines_index, lines in enumerate(lists):
+                        if lines == None:
+                            continue
+                        renew = lines.replace('', 'μ') #不等於
+                        renew = renew.replace('', '*') #項目(方形)
+                        for renew_equation in equation_location:
+                            if renew_equation[0] not in renew:
+                                continue
+                            if len(renew_equation) <= 3 or renew_equation == '\uf06e':
+                                continue
+                            sup_and_super_list = renew_equation.replace('_', ' ')
+                            sup_and_super_list = sup_and_super_list.replace('^', ' ')
+                            sup_and_super_list = sup_and_super_list.replace(f'{renew_equation[0]}{renew_equation[1]} ', '')
+                            sup_and_super_list = sup_and_super_list.replace(f'{renew_equation[-1]}', '')
+                            sup_and_super_list = sup_and_super_list.split(' ')
+                            for sub_and_super in sup_and_super_list:
+                                renew = renew.replace(f'\n{sub_and_super}', '')
+                                renew = renew.replace(f'{sub_and_super}\n', '')
+                        for renew_equation in equation_location:
+                            middle = ' '
+                            if '^' in renew_equation:
+                                middle = renew_equation.replace(middle[-1], '')
+                                middle = middle.split('^')
+                                middle = middle.replace(middle[0], '')
+                            renew = renew.replace(f'{renew_equation[0]}{renew_equation[1]}{renew_equation[-1]}', f"{renew_equation[:-1:]} {renew_equation[-1]}")
+                            renew = renew.replace(f'{renew_equation[0]}{renew_equation[1]}{middle}{renew_equation[-1]}', f"{renew_equation[:-1:]} {renew_equation[-1]}")
+                        lists[lines_index] = renew
+                    table[list_index] = lists
                 df_detail = pd.DataFrame(table[1:], columns = table[0])
                 df_detail.rename(columns={None: '#'}, inplace=True)
                 for index, row in df_detail.iterrows():

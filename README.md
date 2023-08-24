@@ -152,7 +152,7 @@ def extract_tables(self):
                     csv_name_down = csv_name_down[::-1]
                     for name in csv_name_down:
                         if name == ':':
-                            csv_name_down = csv_name_down.replace(':', '.')
+                            csv_name_down = csv_name_down.replace(':', '--')
                     for name in csv_name_down:
                         if name == '.':
                             csv_name_down = csv_name_down.replace('.', '', 1)
@@ -166,7 +166,7 @@ def extract_tables(self):
                     csv_name_up = csv_name_up[::-1]
                     for name in csv_name_up:
                         if name == ':':
-                            csv_name_up = csv_name_up.replace(':', '.')
+                            csv_name_up = csv_name_up.replace(':', '--')
                     for name in csv_name_up:
                         if name == '.':
                             csv_name_up = csv_name_up.replace('.', '', 1)
@@ -324,7 +324,7 @@ def extract_tables(self):
                     csv_name_down = csv_name_down[::-1]
                     for name in csv_name_down:
                         if name == ':':
-                            csv_name_down = csv_name_down.replace(':', '.')
+                            csv_name_down = csv_name_down.replace(':', '--')
                     for name in csv_name_down:
                         if name == '.':
                             csv_name_down = csv_name_down.replace('.', '', 1)
@@ -338,7 +338,7 @@ def extract_tables(self):
                     csv_name_up = csv_name_up[::-1]
                     for name in csv_name_up:
                         if name == ':':
-                            csv_name_up = csv_name_up.replace(':', '.')
+                            csv_name_up = csv_name_up.replace(':', '--')
                     for name in csv_name_up:
                         if name == '.':
                             csv_name_up = csv_name_up.replace('.', '', 1)
